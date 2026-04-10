@@ -1,0 +1,299 @@
+@property --phase-color {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #ffffff;
+}
+
+:root {
+  /* Core Design Tokens */
+  --bg-color: hsl(0, 0%, 2%);
+  --accent-red: hsl(0, 85%, 45%);
+  --accent-bright: hsl(0, 100%, 60%);
+  --ui-white: hsl(0, 0%, 95%);
+  --ui-muted: hsl(0, 0%, 40%);
+
+  /* Dimensions & Spacing */
+  --clock-size: 70vmin;
+  --info-gap: 5vw;
+
+  /* Dynamic State (Managed via JS) */
+  --darkness: 0; /* 0 (Day) to 1 (Night) */
+  --sunlight: 0;
+  --phase-color: #ffffff;
+  --theme-white: color-mix(in srgb, var(--ui-white), var(--phase-color) 40%);
+
+  /* Low-Frequency Environment Transition */
+  transition: --phase-color 60s linear;
+
+  /* Transform States */
+  --h-deg: 0deg;
+  --m-deg: 0deg;
+  --s-deg: 0deg;
+}
+
+body {
+  background-color: var(--bg-color);
+  /* Dynamic Theme: Core logic rooted in Red/White, subtly tinted by solar phase */
+  color: color-mix(in srgb, var(--ui-white), var(--phase-color) 15%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  overflow: hidden;
+  transition: color 0.5s ease;
+}
+
+.layout-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--info-gap);
+  width: 100vw;
+  padding: 5vmin;
+  box-sizing: border-box;
+}
+
+/* Analog Component */
+.clock-container {
+  position: relative;
+  width: var(--clock-size);
+  height: var(--clock-size);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.03) 0%, transparent 80%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Simplified Precision Hands */
+.hand {
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  background: var(--accent-red);
+  transform-origin: bottom center;
+  border-radius: 4px;
+}
+
+.hour-hand {
+  width: 0.7vmin;
+  height: 24%;
+  margin-left: -0.35vmin;
+  transform: rotate(var(--h-deg));
+  z-index: 10;
+}
+
+.min-hand {
+  width: 0.4vmin;
+  height: 38%;
+  margin-left: -0.2vmin;
+  transform: rotate(var(--m-deg));
+  z-index: 11;
+}
+
+.sec-hand {
+  width: 1px;
+  height: 44%;
+  margin-left: -0.5px;
+  z-index: 12;
+  transform: rotate(var(--s-deg));
+  background: var(--accent-red);
+}
+
+/* Ticks */
+.tick {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform-origin: 50% calc(var(--clock-size) / 2);
+  /* Secondary ticks take on light temperature shift */
+  background: var(--theme-white);
+}
+
+.tick.min {
+  width: 1px;
+  height: 1.2vmin;
+  margin-left: -0.5px;
+  opacity: 0.3; /* Increased visibility */
+}
+.tick.hour {
+  width: 1.5px;
+  height: 3.2vmin;
+  margin-left: -0.75px;
+  opacity: 0.8; /* Increased visibility */
+}
+
+/* Simple Matte Hub */
+.center-dot {
+  position: absolute;
+  width: 2vmin;
+  height: 2vmin;
+  background: hsl(0, 0%, 5%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+  border-radius: 50%;
+  z-index: 30;
+}
+
+/* Digital UI Component */
+.digital-wrap {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2vh;
+  min-width: 30vw;
+  font-family: 'SF Mono', 'JetBrains Mono', monospace;
+}
+
+#time {
+  font-size: 11vmin;
+  font-weight: 200;
+  margin: 0;
+  line-height: 0.85;
+  color: var(--theme-white);
+}
+
+#date {
+  font-size: 1.6vmin;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5em;
+  color: var(--accent-red); /* Restored to pure technical red */
+  margin: 1.5vh 0 0 0;
+  opacity: 0.8;
+}
+
+.solar-timeline-wrap {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  box-sizing: border-box;
+  z-index: 100;
+}
+
+.telemetry-stack {
+  position: absolute;
+  bottom: 30px;
+  right: 3vw;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.8vh;
+  z-index: 110;
+}
+
+.solar-timeline {
+  width: 100%;
+  height: 12px; /* Thicker for better color visibility */
+  background: rgba(255, 255, 255, 0.05);
+  position: relative;
+  mask-image: linear-gradient(to right, transparent, black 1%, black 99%, transparent);
+  opacity: 0.6; /* Higher presence for the spectrum */
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5); /* Lift off the bottom */
+}
+
+/* Smooth Spectrum Glow Overlay */
+.solar-timeline::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.05);
+  pointer-events: none;
+}
+
+.sun-marker {
+  position: absolute;
+  top: -3px;
+  width: 3px;
+  height: 18px;
+  background: white; /* Inverts whatever is behind it */
+  border-radius: 2px;
+  transform: translateX(-50%);
+  z-index: 5;
+  mix-blend-mode: difference;
+}
+
+.status-badge {
+  font-family: 'SF Mono', 'JetBrains Mono', monospace;
+  font-size: 1vh;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  color: var(--theme-white);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.status-text {
+  font-size: 1.2vmin;
+  font-weight: 600;
+  letter-spacing: 0.4em;
+  color: var(--accent-red); /* Restored to technical red */
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+  transition: opacity 0.5s, height 0.5s;
+}
+
+.status-text.active {
+  opacity: 0.6;
+  height: auto;
+  margin-top: 1vh;
+}
+
+.status-text.technical {
+  font-family: 'SF Mono', 'JetBrains Mono', monospace;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+}
+
+/* Orchestrated Responsiveness */
+
+/* Vertical / Portrait Screens */
+@media (max-aspect-ratio: 4/5) {
+  .layout-wrapper {
+    flex-direction: column;
+    justify-content: center;
+    gap: 8vh;
+  }
+  .digital-wrap {
+    order: -1;
+    align-items: center;
+    text-align: center;
+    min-width: 80vw;
+  }
+  #time { font-size: 15vmin; }
+  #date { font-size: 2.5vmin; }
+  .clock-container { --clock-size: 60vh; }
+}
+
+/* Ultra-Wide Screens */
+@media (min-aspect-ratio: 21/9) {
+  .layout-wrapper {
+    gap: 10vw;
+  }
+  .clock-container { --clock-size: 50vh; }
+  #time { font-size: 8vmax; }
+}
+
+/* Small Screens / Mobile Landscape */
+@media (max-height: 500px) {
+  .layout-wrapper {
+    padding: 2vmin;
+  }
+  .clock-container { --clock-size: 80vh; }
+  #time { font-size: 15vh; }
+  .solar-timeline-wrap { display: none; }
+}
